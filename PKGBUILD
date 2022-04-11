@@ -1,7 +1,7 @@
 # Maintainer: Iván Zaera Avellón <ivan.zaera@protonmail.com>
 pkgname=ministore
 pkgdesc="Mini keyring store based on PBKDF2 and ssh-askpass"
-pkgver=0.0.1
+pkgver=1.0.0
 pkgrel=1
 arch=('any')
 url="https://github.com/izaera/ministore"
