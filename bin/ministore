@@ -1,0 +1,64 @@
+#!/bin/bash
+source "$(dirname $0)/../lib/ministore/functions.sh"
+
+CMD="$1"
+ID="$2"
+
+if [ "$3" == "--clipboard" ]
+then
+	CLIPBOARD=true
+else
+	CLIPBOARD=false
+fi
+
+assert_id() {
+	if [ -z "$ID" ]
+	then
+		echo "ministore: no item id provided"
+		exit 1
+	fi
+}
+
+case "$CMD" in
+
+	get)
+		assert_id
+
+		PASSWD=$(get_passwd "$ID")
+
+		if $CLIPBOARD
+		then
+			clip_copy "$PASSWD"
+		else
+			echo -n "$PASSWD"
+		fi
+		;;
+
+	store)
+		assert_id
+
+		if $CLIPBOARD
+		then
+			PASSWD=$(clip_paste)
+		else
+			PASSWD=$(askpass "Enter password:")
+		fi
+
+		set_passwd "$ID" "$PASSWD"
+		;;
+
+	erase)
+		assert_id
+
+		# TODO: implement erase
+		;;
+
+	*)
+		echo ""
+		echo "Usage:   ministore (get|store|erase) <item id> [--clipboard]"
+		echo ""
+
+		exit 1
+		;;
+
+esac
