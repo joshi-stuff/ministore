@@ -33,5 +33,5 @@ pkgver() {
 
 package() {
 	cd $srcdir/..
-	PREFIX=$pkgdir make install
+	PREFIX="$pkgdir/usr" make install
 }
