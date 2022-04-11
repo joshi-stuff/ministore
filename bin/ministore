@@ -50,7 +50,7 @@ case "$CMD" in
 	erase)
 		assert_id
 
-		# TODO: implement erase
+		clear_passwd "$ID"
 		;;
 
 	*)

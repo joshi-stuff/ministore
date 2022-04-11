@@ -11,6 +11,14 @@ askpass() {
 	echo -n "$MASTER"
 }
 
+clear_passwd() {
+	ID="$1"
+
+	FILE="$STORE/$ID"
+
+	rm -f "$FILE"
+}
+
 clip_copy() {
 	echo -n "$@" | "$COPY"
 }
