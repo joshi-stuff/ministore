@@ -11,7 +11,7 @@ depends=(
 	'grep'
 	'openssl'
 	'sed'
-	'x11-ssh-askpass'
+	'xaskpass'
 	'wl-clipboard'
 )
 # makedepends=()

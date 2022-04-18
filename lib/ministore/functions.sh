@@ -1,4 +1,4 @@
-ASKPASS="/usr/lib/ssh/ssh-askpass"
+ASKPASS="/usr/bin/xaskpass"
 COPY="/usr/bin/wl-copy"
 PASTE="/usr/bin/wl-paste"
 STORE="$HOME/.ministore"
