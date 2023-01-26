@@ -1,3 +1,4 @@
-Don't depdend on xaskpass for terminals (use gpg-agent instead, for example)
-Create AUR package for ministore
-	or integrate into mysway (?)
+Implement freedesktop's secrets D-Bus interface
+	https://freedesktop.org/wiki/Specifications/secret-storage-spec/secrets-api-0.1.html#ref-dbus-api
+
+Investigate if there's some way to make GnuPG configuration for SSH easier so that SSH always uses your personal key as authentication
