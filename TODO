@@ -1,2 +1,3 @@
+Don't depdend on xaskpass for terminals (use gpg-agent instead, for example)
 Create AUR package for ministore
 	or integrate into mysway (?)
