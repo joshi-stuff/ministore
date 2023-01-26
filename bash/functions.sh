@@ -1,98 +1,81 @@
-ASKPASS="/usr/bin/xaskpass"
-COPY="/usr/bin/wl-copy"
-PASTE="/usr/bin/wl-paste"
-STORE="$HOME/.ministore"
+CONFIG_FILE="${HOME}/.ministore/config.toml"
+STORE="${HOME}/.ministore/keys"
 
-askpass() {
-	PROMPT="$1"
-	
-	MASTER=$($ASKPASS "$PROMPT")
+ERR_NOT_FOUND=1
+ERR_CORRUPT=2
+ERR_CANCEL=3
 
-	echo -n "$MASTER"
+cfg_armor() {
+	[[ -r "${CONFIG_FILE}" ]] || return
+
+	echo $(grep "^armor\s=" "${CONFIG_FILE}" | cut -d= -f2)
 }
 
-clear_passwd() {
-	ID="$1"
+cfg_recipient() {
+	[[ -r "${CONFIG_FILE}" ]] || return
 
-	FILE="$STORE/$ID"
-
-	rm -f "$FILE"
+	echo $(grep "^recipient\s=" "${CONFIG_FILE}" | cut -d= -f2) | tr -d '"'
 }
 
-clip_copy() {
-	echo -n "$@" | "$COPY"
+del_key() {
+	local key_path="$1"
+
+	local file_path="${STORE}/${key_path}"
+
+	[[ -r "${file_path}" ]] || exit ${ERR_NOT_FOUND}
+
+	rm "${file_path}"
 }
 
-clip_paste() {
-	"$PASTE"
+get_key() {
+	local key_path="$1"
+
+	local file_path="${STORE}/${key_path}"
+
+	[[ -r "${file_path}" ]] || exit ${ERR_NOT_FOUND}
+
+	gpg --decrypt "${file_path}" 2>/dev/null
+
+	[[ $? -eq 0 ]] || exit ${ERR_CORRUPT}
 }
 
-get_var() {
-	CONFIG="$1"
-	KEY="$2"
-
-	LINE=$(echo "$CONFIG" | grep "^$KEY=")
-
-	echo "$LINE" | sed -e "s/^$KEY=//"
+list_keys() {
+	cd "${STORE}"
+	find . -type f | grep -v "\.$" | sed 's/^\.\///'
+	cd - >/dev/null
 }
 
-get_passwd() {
-	ID="$1"
+set_key() {
+	local key_path="$1"
+	local key_value="$2"
 
-	FILE="$STORE/$ID"
+	local file_path="${STORE}/${key_path}"
+	local recipient="$(cfg_recipient)"
 
-	if [ ! -e "$FILE" ]
+	local armor="$(cfg_armor)"
+
+	[[ "${armor}" == "true" ]] && armor="--armor"
+
+	mkdir -p $(dirname "${file_path}")
+
+	if [[ -z "${recipient}" ]]
 	then
-		return
-	fi
-
-	MASTER=$(askpass "Enter master password for '$ID':")
-
-	if [ -n "$MASTER" ]
-	then
-		cat "$FILE" | _decrypt "$MASTER"
-	fi
-}
-
-get_store() {
-	if [ ! -e "$STORE" ]
-	then
-		mkdir "$STORE"
-		chmod 700 "$STORE"
-	fi
-
-	echo "$STORE"
-}
-
-read_stdin() {
-	while read LINE
-	do
-		echo "$LINE"
-	done
-}
-
-set_passwd() {
-	ID="$1"
-	PASSWD="$2"
-
-	FILE="$STORE/$ID"
-
-	MASTER=$(askpass "Enter master password for '$ID':")
-
-	if [ -n "$MASTER" ]
-	then
-		echo -n "$PASSWD" | _encrypt "$MASTER" > "$FILE" 
+		echo "${key_value}" | gpg --encrypt ${armor} --default-recipient-self > "${file_path}"
+	else
+		echo "${key_value}" | gpg --encrypt ${armor} --default-recipient "${recipient}" > "${file_path}"
 	fi
 }
 
-_decrypt() {
-	MASTER="$1"
+set_typed_key() {
+	local key_path="$1"
 
-	openssl enc -aes-256-cbc -md sha512 -a -d -pbkdf2 -iter 100000 -salt -pass pass:"$MASTER"
-}
+	gpg-connect-agent "CLEAR_PASSPHRASE ministore" /bye >/dev/null
 
-_encrypt() {
-	MASTER="$1"
+	local key_value=$(gpg-connect-agent "GET_PASSPHRASE --repeat=1 --qualitybar --data ministore $(echo "${key_path}" | tr ' ' '+') Password: Please+enter+password+for+entry:" /bye)
 
-	openssl enc -aes-256-cbc -md sha512 -a -pbkdf2 -iter 100000 -salt -pass pass:"$MASTER"
+	[[ -z $(echo "${key_value}" | grep "^ERR ") ]] || exit ${ERR_CANCEL}
+
+	key_value=$(echo "${key_value}" | grep "^D " | cut -c3-)
+
+	set_key "${key_path}" "${key_value}"
 }

@@ -8,7 +8,10 @@ url='https://codeberg.org/ivan.zaera/ministore'
 license=('GPL-3.0-or-later')
 depends=(
 	'bash'
+	'findutils'
 	'gnupg'
+	'grep'
+	'sed'
 )
 makedepends=(
 	'coreutils'
@@ -37,11 +40,15 @@ package() {
 	cd $srcdir/$pkgname
 
 	mkdir -p $pkgdir/usr/bin
-	cp -ar bash/ministore $pkgdir/usr/bin
+	cp -a bash/ministore $pkgdir/usr/bin
 
 	mkdir -p $pkgdir/usr/lib/ministore
-	cp -ar bash/functions.sh $pkgdir/usr/lib/ministore
+	cp -a bash/functions.sh $pkgdir/usr/lib/ministore
+	cp -a bash/git-functions.sh $pkgdir/usr/lib/ministore
 
 	mkdir -p $pkgdir/usr/lib/git-core
-	cp -ar bash/git-credential-ministore $pkgdir/usr/lib/git-core
+	cp -a bash/git-credential-ministore $pkgdir/usr/lib/git-core
+
+	mkdir -p $pkgdir/usr/share/ministore/samples
+	cp -ar samples/* $pkgdir/usr/share/ministore/samples
 }

@@ -1,62 +1,96 @@
 #!/bin/bash
 source "$(dirname $0)/../lib/ministore/functions.sh"
 
-CMD="$1"
-ID="$2"
+COMMAND="$1"
+KEY_PATH="$2"
+KEY_VALUE="$3"
 
-if [ "$3" == "--clipboard" ]
-then
-	CLIPBOARD=true
-else
-	CLIPBOARD=false
-fi
-
-assert_id() {
-	if [ -z "$ID" ]
+assert_key_path() {
+	if [ -z "${KEY_PATH}" ]
 	then
-		echo "ministore: no item id provided"
-		exit 1
+		echo "ministore: no key path provided"
+		exit 2
 	fi
 }
 
-case "$CMD" in
+assert_key_value() {
+	if [ -z "${KEY_VALUE}" ]
+	then
+		echo "ministore: no key value provided"
+		exit 3
+	fi
+}
+
+case "${COMMAND}" in
+
+	del)
+		assert_key_path
+
+		del_key "${KEY_PATH}"
+		;;
 
 	get)
-		assert_id
+		assert_key_path
 
-		PASSWD=$(get_passwd "$ID")
-
-		if $CLIPBOARD
-		then
-			clip_copy "$PASSWD"
-		else
-			echo -n "$PASSWD"
-		fi
+		get_key "${KEY_PATH}"
 		;;
 
-	store)
-		assert_id
-
-		if $CLIPBOARD
-		then
-			PASSWD=$(clip_paste)
-		else
-			PASSWD=$(askpass "Enter password:")
-		fi
-
-		set_passwd "$ID" "$PASSWD"
+	list)
+		list_keys
 		;;
 
-	erase)
-		assert_id
+	set)
+		assert_key_path
+		assert_key_value
 
-		clear_passwd "$ID"
+		set_key "${KEY_PATH}" "${KEY_VALUE}"
+		;;
+
+	type)
+		assert_key_path
+
+		set_typed_key "${KEY_PATH}"
 		;;
 
 	*)
-		echo ""
-		echo "Usage:   ministore (get|store|erase) <item id> [--clipboard]"
-		echo ""
+		cat <<EOF
+
+Usage:
+
+    ministore <command> ...
+
+
+Valid commands:
+
+    list
+
+        List the paths of all stored keys.
+
+
+    get <key path>
+
+        Prints a key value.
+
+
+    set <key path> <key value>
+
+        Sets the value of a key.
+
+        Beware of shell history when using this command since the key value
+        might be cached in persistent storage. Use 'type' when possible.
+
+
+    type <key path>
+
+        Prompts the user for the value of a key.
+
+
+    del <key path>
+
+        Deletes a key.
+
+
+EOF
 
 		exit 1
 		;;
