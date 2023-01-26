@@ -1,28 +1,32 @@
-# Target dir for make install
-PREFIX ?= /usr
+#
+# Project targets
+#
+build: $(NODE_MODULES)
+	./scripts/build.sh
 
-# Shorthand variables
-CP = cp -a --no-preserve=ownership 
+clean: $(NODE_MODULES)
+	./scripts/clean.sh
+
+format: $(NODE_MODULES) 
+	./scripts/format.sh
+
+lint: $(NODE_MODULES)
+	./scripts/lint.sh
+
+test: $(NODE_MODULES)
+	./scripts/test.sh
 
 #
-# External targets
+# Release targets
 #
-install: 
-	mkdir -p "$(PREFIX)/bin"
-	$(CP) bin/ministore "$(PREFIX)/bin/ministore"
-
-	mkdir -p "$(PREFIX)/lib/git-core"
-	$(CP) lib/git-core/git-credential-ministore "$(PREFIX)/lib/git-core/git-credential-ministore"
-
-	mkdir -p "$(PREFIX)/lib/ministore"
-	$(CP) lib/ministore/* "$(PREFIX)/lib/ministore"
-
-uninstall:
-	rm -f "$(PREFIX)/bin/ministore"
-
-	rm -rf "$(PREFIX)/lib/git-core/git-credential-ministore"
-
-	rm -rf "$(PREFIX)/lib/ministore"
-
 release:
-	./scripts/release
+	./scripts/release.sh
+
+update-aur:
+	./scripts/update-aur.sh
+
+#
+# Install targets
+#
+install:
+	cd arch && rm -f *zst && makepkg -risc

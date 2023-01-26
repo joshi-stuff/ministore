@@ -1,0 +1,47 @@
+# Maintainer: Iván Zaera Avellón <ivan.zaera@posteo.net>
+pkgname=ministore
+pkgver=1.1.0
+pkgrel=1
+pkgdesc='Mini keyring store based on GnuPG'
+arch=('any')
+url='https://codeberg.org/ivan.zaera/ministore'
+license=('GPL-3.0-or-later')
+depends=(
+	'bash'
+	'gnupg'
+)
+makedepends=(
+	'coreutils'
+)
+
+# 8< ---- cut from here ----
+prepare() {
+	rm -f $srcdir/$pkgname
+	ln -s $startdir/.. $srcdir/$pkgname
+}
+# 8< ---- cut to here ----
+
+build() {
+	cd $srcdir/$pkgname
+	make clean
+	make MODE=release build
+}
+
+check() {
+	cd $srcdir/$pkgname
+	make lint
+	make test
+}
+
+package() {
+	cd $srcdir/$pkgname
+
+	mkdir -p $pkgdir/usr/bin
+	cp -ar bash/ministore $pkgdir/usr/bin
+
+	mkdir -p $pkgdir/usr/lib/ministore
+	cp -ar bash/functions.sh $pkgdir/usr/lib/ministore
+
+	mkdir -p $pkgdir/usr/lib/git-core
+	cp -ar bash/git-credential-ministore $pkgdir/usr/lib/git-core
+}

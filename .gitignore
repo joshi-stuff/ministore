@@ -1,2 +1,3 @@
-/ministore-*.zst
-/pkg
+/arch/*.zst
+/arch/pkg
+/arch/src
